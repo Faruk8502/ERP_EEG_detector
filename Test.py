@@ -4,15 +4,22 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score,  mean_squared_error, r2_score, roc_auc_score
 import joblib
+import Analyse
 
-filename = 'model_params.pkl'
+
+filename = 'model_params_2.pkl'
 model = joblib.load(filename)
 
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     data = f['features']
     labels = f['erp_labels']
-    x = np.mean(data[10000:20000, 0:128, :], 2)
+    d = np.mean(data[10000:20000, 0:128, :], 2)
     y = labels[10000:20000]
+x = np.zeros((10000, 64))
+Fs = 128
+N = np.shape(d)[1]
+for i in range(0, 10000):
+    x[i, :] = Analyse.Spectrum(d[i, :], Fs, N)
 y_pred = model.predict(x)
 # Оценка точности модели
 accuracy = model.score(x, y)
