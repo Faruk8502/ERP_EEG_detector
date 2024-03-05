@@ -24,7 +24,10 @@ N = np.shape(d)[1]
 y_pred_0 = model.predict(d)
 y_pred = np.zeros(size)
 for i in range(0, size):
-    y_pred[i] = int(np.round(max(y_pred_0[i, 0], y_pred_0[i, 1])))
+    if(y_pred_0[i, 0] > y_pred_0[i, 1]):
+        y_pred[i] = 0
+    else:
+        y_pred[i] = 1
 # Оценка точности модели
 # accuracy = model.score(d, y)
 precision = precision_score(y, y_pred)
