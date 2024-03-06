@@ -20,8 +20,8 @@ with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     print(r_i)
     print(subjects)
     print(trials)
-    l = labels[0:10000]
-    d = data[0:10000, 0:128, 0:8]
+    l = labels[0:200000]
+    d = data[0:200000, 0:128, 0:8]
     t = target[4000:5000, 2]
     sq = sequences[0:1000]
     ri = r_i[0:1000]

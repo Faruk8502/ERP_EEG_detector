@@ -15,8 +15,8 @@ model = load_model('my_model.keras')
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     data = f['features']
     labels = f['erp_labels']
-    d = data[10000:20000, 0:128, 0:8]
-    y = labels[10000:20000]
+    d = data[200000:210000, 0:128, 0:8]
+    y = labels[200000:210000]
 # x = np.zeros((10000, 64))
 size = 10000
 Fs = 128
@@ -32,14 +32,17 @@ for i in range(0, size):
         y_pred[i] = 1
 # Оценка точности модели
 # accuracy = model.score(d, y)
-precision = precision_score(y, y_pred)
+precision = accuracy_score(y, y_pred)
 recall = recall_score(y, y_pred)
+specivity = recall_score(y, y_pred, pos_label=0)
 mse = mean_squared_error(y, y_pred)
 r2 = roc_auc_score(y, y_pred)
 
 # print("Точность модели: {:.2f}%".format(accuracy * 100))
-print("Чувствительность модели: {:.2f}%".format(precision * 100))
-# print("Специфичность модели: {:.2f}%".format(accuracy * 100))
+print("Толчность модели: {:.2f}%".format(precision * 100))
+print("Специфичность модели: {:.2f}%".format(specivity * 100))
+print("чувствительность:", recall*100, "%")
 print("MSE:", mse)
 print("R-squared:", r2)
 print(np.sum(np.abs(y - y_pred)))
+print(np.sum(y))

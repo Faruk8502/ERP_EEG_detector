@@ -87,11 +87,11 @@ def CNN(data, pred, Fs):
 
     # Train the model
     X_train, X_test, y_train, y_test = train_test_split(data, pred, test_size=0.2)
-    model.fit(data, pred, epochs=10, validation_data=(X_test, y_test))
+    model.fit(data, pred, epochs=50, validation_data=(X_test, y_test))
 
     # # Evaluate the model
     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
     print("Test accuracy:", test_acc)
     # filename = 'model_params_3.pkl'
     # joblib.dump(model, filename)]
-    model.save('my_model.keras')
+    model.save('my_model_100.keras')
