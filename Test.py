@@ -3,12 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score,  mean_squared_error, r2_score, roc_auc_score
+from tensorflow.keras.models import load_model
 import joblib
 import Analyse
 
 
-filename = 'model_params_3.pkl'
-model = joblib.load(filename)
+# filename = 'model_params_3.pkl'
+# model = joblib.load(filename)
+model = load_model('my_model.keras')
 
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     data = f['features']
