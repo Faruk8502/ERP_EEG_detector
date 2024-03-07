@@ -1,6 +1,10 @@
 import h5py
 import numpy as np
 import Train
+from sklearn.model_selection import train_test_split
+from collections import Counter
+from imblearn.under_sampling import RandomUnderSampler
+
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     for key in f.keys():
         print(key)
@@ -20,8 +24,8 @@ with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     print(r_i)
     print(subjects)
     print(trials)
-    l = labels[0:200000]
-    d = data[0:200000, 0:128, 0:8]
+    l = labels[0:250000]
+    d = data[0:250000, 0:128, 0:8]
     t = target[4000:5000, 2]
     sq = sequences[0:1000]
     ri = r_i[0:1000]
@@ -29,4 +33,13 @@ with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     tr = trials[701000:701615]
 Fs = 128
 # Train.Neuronet_0(d, l, Fs)
-Train.CNN(d, l, Fs)
+# Преобразование в двумерную форму данных (n_samples, n_features)
+X_flat = d.reshape(d.shape[0], -1)
+
+# Применение RandomUnderSampler
+rus = RandomUnderSampler(random_state=42)
+X_resampled, y_resampled = rus.fit_resample(X_flat, l)
+
+# Восстановление трехмерной формы данных
+X_resampled_3d = X_resampled.reshape(X_resampled.shape[0], 128, 8)
+Train.CNN(X_resampled_3d, y_resampled, Fs)
