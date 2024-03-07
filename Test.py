@@ -10,15 +10,15 @@ import Analyse
 
 # filename = 'model_params_3.pkl'
 # model = joblib.load(filename)
-model = load_model('my_model.keras')
+model = load_model('my_model_100.keras')
 
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     data = f['features']
     labels = f['erp_labels']
-    d = data[200000:210000, 0:128, 0:8]
-    y = labels[200000:210000]
+    d = data[300000:350000, 0:128, 0:8]
+    y = labels[300000:350000]
 # x = np.zeros((10000, 64))
-size = 10000
+size = 50000
 Fs = 128
 N = np.shape(d)[1]
 # for i in range(0, 10000):
