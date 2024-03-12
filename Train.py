@@ -28,31 +28,7 @@ def Neuronet_0(d, l, Fs):
     filename = 'model_params_2.pkl'
     joblib.dump(model, filename)
 
-def CNN(data, pred, Fs):
-    # model = tf.keras.Sequential()
-    #
-    # input = tf.keras.Input(shape=(128, 8, 1))
-    # 1st layer: 3 convolutional filters (64*1, 32*1, 16*1)
-    # model.add(layers.Conv2D(65, (64, 1), activation='relu', input_shape=(128, 8, 1))(input)
-    # model.add(layers.Conv2D(33, (32, 1), activation='relu', padding='same'))(input)
-    # model.add(layers.Conv2D(17, (16, 1), activation='relu', padding='same'))(input)
-
-    # 2nd layer: 3 convolutional filters (1*8, 1*8, 1*8)
-    # model.add(layers.Conv2D(8, (1, 8), activation='relu', padding='same'))
-    # model.add(layers.Conv2D(4, (1, 8), activation='relu', padding='same'))
-    # model.add(layers.Conv2D(8, (1, 8), activation='relu', padding='same'))
-
-    # # 3rd layer: concatenation
-    # model.add(layers.Concatenate())
-
-    # 4th layer: average pooling (1*4)
-    # model.add(layers.AveragePooling2D(pool_size=(4, 1)))
-
-    # Flatten the tensor
-    # model.add(layers.Flatten())
-
-    # Add a dense layer
-    # model.add(layers.Dense(2, activation='softmax'))
+def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs):
 
     input = tf.keras.Input(shape=(128, 8, 1))
     C1 = layers.Conv2D(8, (64, 1), activation='relu', padding='same')(input)
@@ -83,12 +59,23 @@ def CNN(data, pred, Fs):
                   metrics=['accuracy'])
 
     # Train the model
-    X_train, X_test, y_train, y_test = train_test_split(data, pred, test_size=0.2)
-    model.fit(data, pred, epochs=100, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, batch_size=10, epochs=200, validation_data=(X_valid, y_valid))
 
-    # # Evaluate the model
+    # Evaluate the model
     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
     print("Test accuracy:", test_acc)
-    # filename = 'model_params_3.pkl'
+    filename = 'model_params_3.pkl'
     # joblib.dump(model, filename)]
     model.save('my_model_2.keras')
+
+    # print(np.shape(X_train))
+    # batchs = np.arange(10) * 50 + 50
+    # for i in range(0, 10):
+    #     model.fit(X_train, y_train, batch_size=batchs[i], epochs=10, validation_data=(X_valid, y_valid))
+    #     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
+    #     print("Test accuracy:", i, test_acc)
+    #     # Создание массивов весов случайных значений
+    #     random_weights = [np.random.randn(*w.shape) for w in model.get_weights()]
+    #
+    #     # Установка случайных весов в модель
+    #     model.set_weights(random_weights)

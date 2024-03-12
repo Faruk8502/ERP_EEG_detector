@@ -24,8 +24,10 @@ with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     print(r_i)
     print(subjects)
     print(trials)
-    l = labels[0:250000]
-    d = data[0:250000, 0:128, 0:8]
+    l = labels[0:690000]
+    d = data[0:690000, 0:128, 0:8]
+    d_test = data[690000:701615, 0:128, 0:8]
+    l_test = labels[690000:701615]
     t = target[4000:5000, 2]
     sq = sequences[0:1000]
     ri = r_i[0:1000]
@@ -42,4 +44,10 @@ X_resampled, y_resampled = rus.fit_resample(X_flat, l)
 
 # Восстановление трехмерной формы данных
 X_resampled_3d = X_resampled.reshape(X_resampled.shape[0], 128, 8)
-Train.CNN(X_resampled_3d, y_resampled, Fs)
+
+# Разбиение данных на обучающую и тестовую выборки
+X_train, X_valid, y_train, y_valid = train_test_split(X_resampled_3d, y_resampled, test_size=0.2)
+X_test, y_test = d_test, l_test
+
+# Обучение
+Train.CNN(X_train, X_valid, y_train, y_valid, X_test, y_test, Fs)

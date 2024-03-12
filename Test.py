@@ -10,7 +10,7 @@ import Analyse
 
 # filename = 'model_params_3.pkl'
 # model = joblib.load(filename)
-model = load_model('my_model_100.keras')
+model = load_model('my_model_2.keras')
 
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     data = f['features']
@@ -23,7 +23,7 @@ Fs = 128
 N = np.shape(d)[1]
 # for i in range(0, 10000):
 #     x[i, :] = Analyse.Spectrum(d[i, :], Fs, N)
-y_pred_0 = model.predict(d)
+y_pred_0 = model.predict(d, batch_size=100)
 y_pred = np.zeros(size)
 for i in range(0, size):
     if(y_pred_0[i, 0] > y_pred_0[i, 1]):
