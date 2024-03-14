@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 import joblib
 import Analyse
+import Test
 import os
 
 def Neuronet_0(d, l, Fs):
@@ -28,8 +29,9 @@ def Neuronet_0(d, l, Fs):
     filename = 'model_params_2.pkl'
     joblib.dump(model, filename)
 
-def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs):
+def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs, Batch, Epoch):
 
+    # Архитектура СНС
     input = tf.keras.Input(shape=(128, 8, 1))
     C1 = layers.Conv2D(8, (64, 1), activation='relu', padding='same')(input)
     C2 = layers.Conv2D(8, (32, 1), activation='relu', padding='same')(input)
@@ -59,23 +61,13 @@ def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs):
                   metrics=['accuracy'])
 
     # Train the model
-    model.fit(X_train, y_train, batch_size=10, epochs=200, validation_data=(X_valid, y_valid))
+    model.fit(X_train, y_train, batch_size=Batch, epochs=Epoch, validation_data=(X_valid, y_valid))
 
     # Evaluate the model
     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
     print("Test accuracy:", test_acc)
-    filename = 'model_params_3.pkl'
+    # filename = 'model_params_3.pkl'
     # joblib.dump(model, filename)]
-    model.save('my_model_2.keras')
+    model.save('my_model_batch_50_data_600k.keras')
+    Test.Test(X_test, y_test)
 
-    # print(np.shape(X_train))
-    # batchs = np.arange(10) * 50 + 50
-    # for i in range(0, 10):
-    #     model.fit(X_train, y_train, batch_size=batchs[i], epochs=10, validation_data=(X_valid, y_valid))
-    #     test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
-    #     print("Test accuracy:", i, test_acc)
-    #     # Создание массивов весов случайных значений
-    #     random_weights = [np.random.randn(*w.shape) for w in model.get_weights()]
-    #
-    #     # Установка случайных весов в модель
-    #     model.set_weights(random_weights)
