@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
 from collections import Counter
 from imblearn.under_sampling import RandomUnderSampler
 from Train import CNN
@@ -22,18 +23,28 @@ def Open(N_train, N_test):
         l_test = labels[N_train:N_train + N_test]
     return l, d, l_test, d_test
 
-def Preparete(l, d, l_test, d_test, Batch, Epoch):
+def Preparete(l, d, l_test, d_test, Batch, Epoch, desired_ratio):
     Fs = 128
     # Train.Neuronet_0(d, l, Fs)
-    # Преобразование в двумерную форму данных (n_samples, n_features)
-    X_flat = d.reshape(d.shape[0], -1)
 
-    # Применение RandomUnderSampler
-    rus = RandomUnderSampler(random_state=42)
-    X_resampled, y_resampled = rus.fit_resample(X_flat, l)
+    # Разделение выборки на истинные и ложные элементы
+    true_samples = d[l == 1]
+    false_samples = d[l == 0]
 
-    # Восстановление трехмерной формы данных
-    X_resampled_3d = X_resampled.reshape(X_resampled.shape[0], 128, 8)
+    # Получение количества истинных элементов, соответствующего заданному соотношению
+    n_true_samples = np.shape(true_samples)[0]
+    n_false_samples = int(np.ceil(n_true_samples * desired_ratio))
+
+    # Получение соотвтествующих меток
+    true_labels = np.ones(n_true_samples)
+    false_labels = np.zeros(n_false_samples)
+
+    # Отбрасываем случайным образом избыточные истинные элементы
+    downsampled_false_samples = resample(false_samples, n_samples=n_false_samples, replace=False)
+
+    # Объединение истинных и ложных элементов для формирования новой выборки
+    X_resampled_3d = np.concatenate((true_samples, downsampled_false_samples))
+    y_resampled = np.concatenate((true_labels, false_labels))
 
     # Разбиение данных на обучающую и тестовую выборки
     X_train, X_valid, y_train, y_valid = train_test_split(X_resampled_3d, y_resampled, test_size=0.2)

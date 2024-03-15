@@ -8,7 +8,7 @@ import joblib
 import Analyse
 
 def Test(X_test, y_test):
-    model = load_model('my_model_batch_50_data_600k.keras')
+    model = load_model('my_model_exp.keras')
     # filename = 'model_params_3.pkl'
     # model = joblib.load(filename)
 

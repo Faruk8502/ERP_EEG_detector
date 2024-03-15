@@ -68,6 +68,6 @@ def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs, Batch, Epoch):
     print("Test accuracy:", test_acc)
     # filename = 'model_params_3.pkl'
     # joblib.dump(model, filename)]
-    model.save('my_model_batch_50_data_600k.keras')
+    model.save('my_model_exp.keras')
     Test.Test(X_test, y_test)
 
