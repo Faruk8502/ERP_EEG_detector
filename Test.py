@@ -17,7 +17,7 @@ def Test(X_test, y_test):
     Fs = 128
     # for i in range(0, 10000):
     #     x[i, :] = Analyse.Spectrum(d[i, :], Fs, N)
-    y_pred_0 = model.predict(X_test, batch_size=100)
+    y_pred_0 = model.predict(X_test, batch_size=1024)
     y_pred = np.zeros(size)
     for i in range(0, size):
         if(y_pred_0[i, 0] < 0.5):
