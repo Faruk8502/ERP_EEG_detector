@@ -1,3 +1,4 @@
+import Preparation
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -57,7 +58,7 @@ def CNN(X_train, X_valid, y_train, y_valid, X_test, y_test, Fs, Batch, Epoch):
     # model.summary()
 
     model.compile(optimizer='adam',
-                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+                  loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
     # Train the model

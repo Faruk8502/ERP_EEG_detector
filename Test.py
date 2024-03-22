@@ -20,7 +20,7 @@ def Test(X_test, y_test):
     y_pred_0 = model.predict(X_test, batch_size=1024)
     y_pred = np.zeros(size)
     for i in range(0, size):
-        if(y_pred_0[i, 0] < 0.5):
+        if(y_pred_0[i, 0] < 0.8):
             y_pred[i] = 1
         else:
             y_pred[i] = 0

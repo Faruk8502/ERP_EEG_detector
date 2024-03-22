@@ -47,11 +47,14 @@ def Preparete(l, d, l_test, d_test, trials, Batch, Epoch, desired_ratio, test_si
     X_test, y_test = d_test, l_test
     print("Конечный размер матрицы данных:", np.shape(X_train))
     y_train_encodered = One_Hot_Encoder(y_train.reshape((int(np.shape(X_train)[0]), 1)))
-    CNN(X_train, X_valid, y_train_encodered, y_valid, X_test, y_test, Fs, Batch, Epoch)
+    y_valid_encodered = One_Hot_Encoder(y_valid.reshape((int(np.shape(X_valid)[0]), 1)))
+    y_test_encodered = One_Hot_Encoder(y_test.reshape((int(np.shape(X_test)[0]), 1)))
+    CNN(X_train, X_valid, y_train_encodered, y_valid_encodered, X_test, y_test_encodered, Fs, Batch, Epoch)
 def One_Hot_Encoder(y):
     enc = OneHotEncoder(handle_unknown='ignore')
     enc.fit(y)
-    y_encodered = enc.transform(y)
+
+    y_encodered = enc.transform(y).toarray()
     return y_encodered
 def Balancing(d, l, desired_ratio):
     # Разделение выборки на истинные и ложные элементы
