@@ -2,6 +2,7 @@ import h5py
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
+from sklearn.preprocessing import OneHotEncoder
 from collections import Counter
 from imblearn.under_sampling import RandomUnderSampler
 from Train import CNN
@@ -45,8 +46,13 @@ def Preparete(l, d, l_test, d_test, trials, Batch, Epoch, desired_ratio, test_si
     X_train, X_valid, y_train, y_valid = train_test_split(X_resampled_trial, y_resampled_trial, test_size=test_size)
     X_test, y_test = d_test, l_test
     print("Конечный размер матрицы данных:", np.shape(X_train))
-    CNN(X_train, X_valid, y_train, y_valid, X_test, y_test, Fs, Batch, Epoch)
-
+    y_train_encodered = One_Hot_Encoder(y_train.reshape((int(np.shape(X_train)[0]), 1)))
+    CNN(X_train, X_valid, y_train_encodered, y_valid, X_test, y_test, Fs, Batch, Epoch)
+def One_Hot_Encoder(y):
+    enc = OneHotEncoder(handle_unknown='ignore')
+    enc.fit(y)
+    y_encodered = enc.transform(y)
+    return y_encodered
 def Balancing(d, l, desired_ratio):
     # Разделение выборки на истинные и ложные элементы
     true_samples = d[l == 1]
@@ -67,5 +73,3 @@ def Balancing(d, l, desired_ratio):
     X_balanced = np.concatenate((true_samples, downsampled_false_samples))
     y_balanced = np.concatenate((true_labels, false_labels))
     return X_balanced, y_balanced
-
-

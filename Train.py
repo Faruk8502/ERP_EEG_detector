@@ -29,7 +29,7 @@ def Neuronet_0(d, l, Fs):
     filename = 'model_params_2.pkl'
     joblib.dump(model, filename)
 
-def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs, Batch, Epoch):
+def CNN(X_train, X_valid, y_train, y_valid, X_test, y_test, Fs, Batch, Epoch):
 
     # Архитектура СНС
     input = tf.keras.Input(shape=(128, 8, 1))
@@ -57,7 +57,7 @@ def CNN(X_train, X_valid, y_train, y_valid,  X_test, y_test, Fs, Batch, Epoch):
     # model.summary()
 
     model.compile(optimizer='adam',
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
     # Train the model

@@ -4,8 +4,8 @@ import numpy as np
 
 Mode = 0
 if (Mode == 0):
-    N_train = 500000
-    N_test = 50000
+    N_train = 50000
+    N_test = 5000
     l, d, l_test, d_test, trials = Preparation.Open(N_train, N_test)
     Batch = 1024
     Epoch = 20
