@@ -31,7 +31,7 @@ def Preparete(l, d, l_test, d_test, trials, Batch, Epoch, desired_ratio, test_si
     X_resampled_trial = np.zeros((1, 128, 8))
     y_resampled_trial = np.zeros(1)
     for i in range(0, n_trials):
-        lenght = int(0.2*len(l[trials==i]))
+        lenght = int(0.5*len(l[trials==i]))
         X_resampled_trial_one, y_resampled_trial_one = resample(d[trials==i], l[trials==i],
                                                                 stratify=l[trials==i], n_samples=lenght, replace=False)
         if (i == 0):
@@ -53,7 +53,6 @@ def Preparete(l, d, l_test, d_test, trials, Batch, Epoch, desired_ratio, test_si
 def One_Hot_Encoder(y):
     enc = OneHotEncoder(handle_unknown='ignore')
     enc.fit(y)
-
     y_encodered = enc.transform(y).toarray()
     return y_encodered
 def Balancing(d, l, desired_ratio):
