@@ -5,26 +5,21 @@ import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 from tensorflow.keras.constraints import max_norm
 import joblib
-import Analyse
+# import Analyse
 
 def Neuronet_0(d, l, Fs):
-    data_spect = np.zeros((10000, 64))
-    N = np.shape(d)[1]
-    a = Analyse.Spectrum(d[0, :], Fs, N)
-    for i in range(0, 10000):
-        data_spect[i, :] = Analyse.Spectrum(d[i, :], Fs, N)
+    # data_spect = np.zeros((10000, 64))
+    # N = np.shape(d)[1]
+    # a = Analyse.Spectrum(d[0, :], Fs, N)
+    # for i in range(0, 10000):
+    #     data_spect[i, :] = Analyse.Spectrum(d[i, :], Fs, N)
     # Разделение выборки на тренировочную и тестовую
-    X_train, X_test, y_train, y_test = train_test_split(data_spect, l, test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(d, l, test_size=0.2)
 
     # Создание модели многослойного перцептрона
     model = MLPClassifier(hidden_layer_sizes=(100, 50, 25), activation='relu', solver='adam', max_iter=500)
 
-    # Обучение модели
-    model.fit(X_train, y_train)
-
-    # Сохранение модели
-    filename = 'model_params_2.pkl'
-    joblib.dump(model, filename)
+    return model
 
 def CNN(input_reports, scales_reports, activation, dropout_rate, n_channels, n_filters):
 
@@ -99,7 +94,7 @@ def CNN_2(input_reports, scales_reports, activation, dropout_rate, n_channels, n
 
     input = tf.keras.Input(shape=(input_reports, n_channels, 1))
     C1 = layers.Conv2D(n_filters,
-                         kernel_size=(8, 1),
+                         kernel_size=(32, 1),
                          kernel_initializer='he_normal',
                          padding='same')(input)
     C1_BN = layers.BatchNormalization()(C1)
@@ -113,7 +108,15 @@ def CNN_2(input_reports, scales_reports, activation, dropout_rate, n_channels, n
     D1_Act = layers.Activation(activation)(D1_BN)
     D1_Dout = layers.Dropout(dropout_rate)(D1_Act)
     A1 = layers.AveragePooling2D(pool_size=(4, 1))(D1_Dout)
-    F = layers.Flatten()(A1)
+    C2 = layers.Conv2D(n_filters,
+                       kernel_size=(8, 1),
+                       kernel_initializer='he_normal',
+                       padding='same')(A1)
+    C2_BN = layers.BatchNormalization()(C2)
+    C2_Act = layers.Activation(activation)(C2_BN)
+    C2_Dout = layers.Dropout(dropout_rate)(C2_Act)
+    A2 = layers.AveragePooling2D(pool_size=(2, 1))(C2_Dout)
+    F = layers.Flatten()(A2)
     output = layers.Dense(2, activation='softmax')(F)
     model = tf.keras.Model(inputs=input, outputs=output)
     return model

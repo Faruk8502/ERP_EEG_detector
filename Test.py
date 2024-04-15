@@ -32,7 +32,7 @@ def Test(X_train, y_train, X_test, y_test, trs_test, sbj_test):
     y_pred_0 = model.predict(X_test[sbj_test == subject_number][start_index:end_index], batch_size=1000)
     y_pred = np.zeros(size)
     for i in range(0, size):
-        if(y_pred_0[i, 0] < 0.9):
+        if(y_pred_0[i, 0] < 0.97):
             y_pred[i] = 1
         else:
             y_pred[i] = 0
@@ -98,3 +98,4 @@ def Metrics(y_true, y_pred, y_pred_0):
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
     plt.show()
+

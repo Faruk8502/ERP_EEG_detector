@@ -7,6 +7,7 @@ from collections import Counter
 from imblearn.under_sampling import RandomUnderSampler
 from Train import CNN
 from scipy.fftpack import fft, ifft
+from scipy import signal
 def Open(N_train, N_test):
     with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
         # for key in f.keys():
@@ -89,38 +90,61 @@ def Balancing(labels, features, desired_ratio):
 #_______________________________________________________________________________________________________________________
 
 def Processing(N_train, N_test, features_train, features_test):
-    win_size = 30
+    win_size = 24
     interval = 1
     features_train_pd = np.zeros((N_train, 128, 8))
     features_test_pd =  np.zeros((N_test, 128, 8))
-    # for i in range(0, N_train):
-    #     print(i)
-    #     for j in range(0, 8):
-    #         features_train_pd[i, :, j] = Spectrogram(features_train[i, :, j], win_size, interval)
+    for i in range(0, N_train):
+        print(i)
+        for j in range(0, 8):
+            features_train_pd[i, 0:128, j] = Spectrogram(features_train[i, :, j], win_size, interval)
 
     for i in range(0, N_test):
+        print(i)
         for j in range(0, 8):
-            print(i)
-            features_test_pd[i, :, j] = Spectrogram(features_test[i, :, j], win_size, interval)
+            features_test_pd[i, 0:128, j] = Spectrogram(features_test[i, :, j], win_size, interval)
 
     return features_train_pd, features_test_pd
 def Spectrogram(x, win_size, interval):
     Fs = 128
-    N = len(x)/2
+    N = len(x)
     N_step = int(np.floor(N/interval))
-    Spectrum_sum = np.zeros(128)
-    for i in range(0, N_step):
-        if(win_size + i*interval < N):
-            _, PSD = Spectrum(x[0 + i*interval:win_size + i*interval], Fs, N)
-            Spectrum_sum[i] = np.sum(PSD[5:25])
-    return Spectrum_sum
+    Spectrum_sum = np.zeros(int(N))
+    x_filtred = Filter(x)
+    # for i in range(0, N_step):
+    #     if(win_size + i*interval < N):
+    #         _, PSD = Spectrum(x_filtred[0 + i*interval:win_size + i*interval], Fs, win_size)
+    #         Spectrum_sum[i] = np.sum(PSD[3:5])
+    return x_filtred
+
+def Filter(x):
+    # Задаем частоту дискретизации
+    fs = 128  # частота дискретизации
+
+    # Задаем параметры фильтра
+    f1 = 2  # нижняя частота среза
+    f2 = 5  # верхняя частота среза
+    width = 3.0  # ширина полосы
+    ripple_db = 20  # уровень затухания в децибелах
+
+    # Генерируем полосовой цифровой фильтр
+    N, beta = signal.kaiserord(ripple_db, width / (0.5 * fs))
+    taps = signal.firwin(N, [f1, f2], width=width, window=('kaiser', beta), pass_zero=False, fs=fs)
+
+    y = signal.filtfilt(taps, 1, x)
+    return y
 def Spectrum(x, Fs, N):
-    f_max = Fs / 2
+    f_max = Fs/2
     T = 1/Fs
     t_max = T * N
     freq = np.arange(N/2) * Fs / N
     y = fft(x)
-    P = np.abs(y[1: int(N/2) + 1])
-    PSD = (P*P)/np.abs(y[0])
+    A = np.zeros(int(N/2))
+    A[0] = np.abs(y[0])/N
+    A[1:int(N/2)] = 2*np.abs(y[1:int(N/2)])/N
+    P = np.zeros(int(N / 2))
+    P[0] = A[0]*A[0]
+    P[1:int(N / 2)] = A[1:int(N / 2)]*A[1:int(N / 2)]/2
+    PSD = (P)/(Fs / N)
     return freq, PSD
 
