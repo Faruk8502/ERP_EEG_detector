@@ -7,17 +7,27 @@ import pywt
 
 def Spectrogram(x, win_size, interval):
     Fs = 128
-    N = len(x)
-    N_step = int(np.floor(N/interval))
-    Spectrum_sum = np.zeros(int(N))
     t = np.arange(0, 1, 1/Fs)
+    N = len(x)
+    # Удаление тренда
+    x = signal.detrend(x, axis=0, type='linear')
+    plt.plot(x)
+    plt.title('Исходный сигнал')
+
+    # Домножение на оконную функцию
     window = signal.windows.hamming(N, sym=True)
-    # x = x * window
+    x = x * window
+    # Фильтрация
     x_filtred = Filter(x)
-    x_filtred_detrend = signal.detrend(x_filtred, axis=0, type='linear')
-    Wevlet(x_filtred_detrend, t, N)
-    plt.plot(x_filtred)
-    plt.show()
+    plt.figure()
+    # plt.plot(x_filtred)
+    # plt.title('Отфильтрованный сигнал')
+    # plt.show()
+    # Вейвлет преобразование
+    Wevlet(x, t, N)
+    #  Построение спектрограммы
+    N_step = int(np.floor(N / interval))
+    Spectrum_sum = np.zeros(int(N))
     for i in range(0, N_step):
         if(win_size + i*interval < N):
             freq, PSD = Spectrum(x[0 + i*interval:win_size + i*interval], Fs, win_size)
@@ -50,7 +60,7 @@ def Filter(x):
     # Задаем параметры фильтра
     f1 = 3  # нижняя частота среза
     f2 = 15  # верхняя частота среза
-    width = 7.0  # ширина полосы
+    width = 5.0  # ширина полосы
     ripple_db = 20  # уровень затухания в децибелах
 
     # Генерируем полосовой цифровой фильтр
@@ -59,25 +69,26 @@ def Filter(x):
 
     y = signal.filtfilt(taps, 1, x)
     #Отображаем частотную характеристику фильтра
-    w, h = signal.freqz(taps, worN=8000)
-    plt.figure()
-    plt.plot(0.5 * fs * w / np.pi, np.abs(h), 'b')
-    plt.axvline(f1, color='r', linestyle='--')
-    plt.axvline(f2, color='r', linestyle='--')
-    plt.xlim(0, 0.5 * fs)
-    plt.title("Frequency Response of Filter")
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Gain')
-    plt.grid()
-    plt.show()
+    # w, h = signal.freqz(taps, worN=8000)
+    # plt.figure()
+    # plt.plot(0.5 * fs * w / np.pi, np.abs(h), 'b')
+    # plt.axvline(f1, color='r', linestyle='--')
+    # plt.axvline(f2, color='r', linestyle='--')
+    # plt.xlim(0, 0.5 * fs)
+    # plt.title("Frequency Response of Filter")
+    # plt.xlabel('Frequency [Hz]')
+    # plt.ylabel('Gain')
+    # plt.grid()
+    # plt.show()
     return y
 def Wevlet(x, t, N):
-    scales = np.arange(1, 10)
+    # _____\\\\\ Scipy \\\\\_____
+    # scales = np.arange(1, 10)
     # Выбор вейвлета
-    wavelet = signal.ricker
+    # wavelet = signal.ricker
 
     # Создание гребенки фильтров
-    coefficients = signal.cwt(x, wavelet, scales)
+    # coefficients = signal.cwt(x, wavelet, scales)
 
     # Построение результатов
     # plt.figure(figsize=(10, 6))
@@ -103,37 +114,81 @@ def Wevlet(x, t, N):
     # plt.tight_layout()
     # plt.show()
 
+    # _____\\\ PyWavelets \\\\\_____
+
     # Применение вейвлет-преобразования с вейвлетом Daubechies
-    wavelet = 'sym10'  # Выбор вейвлета Daubechies
-    coefficients = pywt.wavedec(x, wavelet, level=6)
+    wavelet = 'morl'  # Выбор вейвлета Daubechies
+    if((wavelet in pywt.wavelist(kind='discrete')) == True):
+        level = 1
+        coefficients_2 = pywt.wavedec(x, wavelet, level=level)
+
+        # Визуализация результатов
+        plt.figure(figsize=(12, 6))
+        plt.subplot(2, 1, 1)
+        plt.plot(t, x, label='ЭЭГ с волной P300')
+        plt.xlabel('Время (с)')
+        plt.ylabel('Амплитуда')
+        plt.legend()
+
+        plt.subplot(2, 1, 2)
+        for i, coef in enumerate(coefficients_2[1:11]):
+            plt.plot(coef, label=f'Уровень {i}')
+        plt.xlabel('Индекс коэффициента')
+        plt.ylabel('Амплитуда коэффициента')
+        plt.legend()
+        plt.title('Коэффициенты вейвлет-преобразования')
+        plt.tight_layout()
+        plt.show()
+
+        maximum = max(map(len, coefficients_2))
+        for every in coefficients_2:
+            try:
+                one = np.pad(some, maximum)
+                two = np.pad(every, maximum)
+                coeffs_array = np.concatenate((one, two), axis=1)
+            except UnboundLocalError:
+                some = every
+            some = every
+
+        # Построение результатов
+        plt.imshow(coeffs_array, cmap='jet', aspect='auto')
+        plt.colorbar()
+        plt.show()
+    else:
+        scales = np.arange(1, 10)
+        coefficients_2, freq = pywt.cwt(x, scales, wavelet)
+        # Визуализация результатов
+        plt.imshow(coefficients_2, extent=[0, 1, 1, 128], cmap='jet', aspect='auto', vmax=abs(coefficients_2).max(),
+                   vmin=-abs(coefficients_2).max())
+        plt.colorbar(label='Амплитуда коэффициентов')
+        plt.xlabel('Время')
+        plt.ylabel('Масштаб')
+        plt.show()
+
+        plt.figure(figsize=(10, 6))
+
+        for i in range(len(scales)):
+            plt.subplot(2, 5, i + 1)
+            plt.plot(x, color='black', lw=0.5)
+            plt.plot(coefficients_2[i], color='red', lw=0.5)
+            plt.title('Масштаб {}'.format(scales[i]))
+            plt.xticks([])
+            plt.yticks([])
+
+        plt.tight_layout()
+        plt.show()
     print(pywt.wavelist())
-    # Визуализация результатов
-    plt.figure(figsize=(12, 6))
-    plt.subplot(2, 1, 1)
-    plt.plot(t, x, label='ЭЭГ с волной P300')
-    plt.xlabel('Время (с)')
-    plt.ylabel('Амплитуда')
-    plt.legend()
-
-    plt.subplot(2, 1, 2)
-    for i, coef in enumerate(coefficients[3:5]):
-        plt.plot(coef, label=f'Уровень {i}')
-    plt.xlabel('Индекс коэффициента')
-    plt.ylabel('Амплитуда коэффициента')
-    plt.legend()
-    plt.title('Коэффициенты вейвлет-преобразования')
-    plt.tight_layout()
-    plt.show()
-
 
 with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
     features = f['features']
     labels = f['erp_labels']
     subject = f['subjects']
+    trials = f['trials']
     subject_exp = subject[:]
-    patient = 50
-    labels_exp = labels[subject_exp == patient]
-    features_exp = features[subject_exp == patient]
+    trials_exp = trials[:]
+    patient = 54
+    labels_exp = labels[trials_exp == patient]
+    features_exp = features[trials_exp == patient]
     features_exp_1 = features_exp[labels_exp == 1]
     features_exp_1_mean = np.mean(features_exp_1, 0)
 Fs = 128
@@ -142,15 +197,17 @@ T = 1 / 128
 t_max = T * N
 t = np.arange(0, t_max, T)
 
-for i in range(0, 8):
-    win_size = 60
-    interval = 1
-    Spectrum_sum = Spectrogram(features_exp_1[0, :, i], win_size, interval)
-    plt.plot(Spectrum_sum)
-    plt.show()
+# for i in range(0, 8):
+#     win_size = 60
+#     interval = 1
+#     Spectrum_sum = Spectrogram(features_exp_1[0, :, i], win_size, interval)
+#     plt.plot(Spectrum_sum)
+#     plt.show()
 
 # for i in range(0, 8):
-#     plt.plot(t, features_exp_1_mean[:, i])
+#     y = Filter(features_exp_1_mean[:, i])
+#     Wevlet(features_exp_1_mean[:, i], t, N)
+#     plt.plot(t, y[:])
 #     plt.xlabel('с')
 #     plt.ylabel('мкВ')
 #     plt.show()

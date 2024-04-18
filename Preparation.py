@@ -8,6 +8,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from Train import CNN
 from scipy.fftpack import fft, ifft
 from scipy import signal
+import pywt
 def Open(N_train, N_test):
     with h5py.File('GIB-UVA ERP-BCI.hdf5', 'r') as f:
         # for key in f.keys():
@@ -89,22 +90,37 @@ def Balancing(labels, features, desired_ratio):
     return X_balanced, y_balanced
 #_______________________________________________________________________________________________________________________
 
-def Processing(N_train, N_test, features_train, features_test):
-    win_size = 24
-    interval = 1
-    features_train_pd = np.zeros((N_train, 128, 8))
-    features_test_pd =  np.zeros((N_test, 128, 8))
+def Processing(N_train, N_test, N_valid, X_train, X_test, X_valid):
+    # win_size = 24
+    # interval = 1
+    # features_train_pd = np.zeros((N_train, 128, 8))
+    # features_test_pd =  np.zeros((N_test, 128, 8))
+    features_train_wt = np.zeros((N_train, 128, 8))
+    features_test_wt = np.zeros((N_test, 128, 8))
+    features_valid_wt = np.zeros((N_valid, 128, 8))
     for i in range(0, N_train):
         print(i)
         for j in range(0, 8):
-            features_train_pd[i, 0:128, j] = Spectrogram(features_train[i, :, j], win_size, interval)
-
+            features_train_wt[i, 0:128, j] = Wavelet(X_train[i, 0:128, j])
     for i in range(0, N_test):
         print(i)
         for j in range(0, 8):
-            features_test_pd[i, 0:128, j] = Spectrogram(features_test[i, :, j], win_size, interval)
+            features_test_wt[i, 0:128, j] = Wavelet(X_test[i, 0:128, j])
+    for i in range(0, N_valid):
+        print(i)
+        for j in range(0, 8):
+            features_valid_wt[i, 0:128, j] = Wavelet(X_valid[i, 0:128, j])
+    # for i in range(0, N_train):
+    #     print(i)
+    #     for j in range(0, 8):
+    #         features_train_pd[i, 0:128, j] = Spectrogram(features_train[i, :, j], win_size, interval)
+    #
+    # for i in range(0, N_test):
+    #     print(i)
+    #     for j in range(0, 8):
+    #         features_test_pd[i, 0:128, j] = Spectrogram(features_test[i, :, j], win_size, interval)
 
-    return features_train_pd, features_test_pd
+    return features_train_wt, features_test_wt, features_valid_wt
 def Spectrogram(x, win_size, interval):
     Fs = 128
     N = len(x)
@@ -147,4 +163,10 @@ def Spectrum(x, Fs, N):
     P[1:int(N / 2)] = A[1:int(N / 2)]*A[1:int(N / 2)]/2
     PSD = (P)/(Fs / N)
     return freq, PSD
+
+def Wavelet(x):
+    wavelet = 'morl'
+    scales = np.arange(1, 10)
+    coefficients, freq = pywt.cwt(x, scales, wavelet)
+    return coefficients[8, 0:128]
 

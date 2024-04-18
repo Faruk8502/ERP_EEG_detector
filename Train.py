@@ -20,7 +20,6 @@ def Neuronet_0(d, l, Fs):
     model = MLPClassifier(hidden_layer_sizes=(100, 50, 25), activation='relu', solver='adam', max_iter=500)
 
     return model
-
 def CNN(input_reports, scales_reports, activation, dropout_rate, n_channels, n_filters):
 
     # Архитектура СНС
@@ -86,6 +85,7 @@ def CNN(input_reports, scales_reports, activation, dropout_rate, n_channels, n_f
     F = layers.Flatten()(C8_4)
     output = layers.Dense(2, activation='softmax')(F)
     model = tf.keras.Model(inputs=input, outputs=output)
+
     return model
 
 def CNN_2(input_reports, scales_reports, activation, dropout_rate, n_channels, n_filters):
@@ -119,4 +119,137 @@ def CNN_2(input_reports, scales_reports, activation, dropout_rate, n_channels, n
     F = layers.Flatten()(A2)
     output = layers.Dense(2, activation='softmax')(F)
     model = tf.keras.Model(inputs=input, outputs=output)
+    return model
+def double_CNN(input_reports, scales_reports, activation, dropout_rate, n_channels, n_filters):
+    # Архитектура СНС
+    b1_units_EEG = list()
+
+    # Первый блок_____________________________________________
+    EEG_input = tf.keras.Input(shape=(input_reports, n_channels, 1))
+    for i in range(len(scales_reports)):
+        unit = layers.Conv2D(n_filters,
+                             kernel_size=(scales_reports[i], 1),
+                             kernel_initializer='he_normal',
+                             padding='same')(EEG_input)
+        unit = layers.BatchNormalization()(unit)
+        unit = layers.Activation(activation)(unit)
+        unit = layers.Dropout(dropout_rate)(unit)
+        unit = layers.DepthwiseConv2D((1, n_channels),
+                                      use_bias=False,
+                                      depth_multiplier=2,
+                                      depthwise_constraint=max_norm(1.))(unit)
+        unit = layers.BatchNormalization()(unit)
+        unit = layers.Activation(activation)(unit)
+        unit = layers.Dropout(dropout_rate)(unit)
+        b1_units_EEG.append(unit)
+    N1_EEG = layers.Concatenate(axis=3)(b1_units_EEG)
+    A1_EEG = layers.AveragePooling2D(pool_size=(4, 1))(N1_EEG)
+
+    # Второй блок_____________________________________________
+    b2_units_EEG = list()
+    for i in range(len(scales_reports)):
+        unit = layers.Conv2D(n_filters,
+                             kernel_size=(int(scales_reports[i] / 4), 1),
+                             kernel_initializer='he_normal',
+                             use_bias=False,
+                             padding='same')(A1_EEG)
+        unit = layers.BatchNormalization()(unit)
+        unit = layers.Activation(activation)(unit)
+        unit = layers.Dropout(dropout_rate)(unit)
+        b2_units_EEG.append(unit)
+    N2_EEG = layers.Concatenate(axis=3)(b2_units_EEG)
+    A2_EEG = layers.AveragePooling2D(pool_size=(2, 1))(N2_EEG)
+
+    # Третий блок_____________________________________________
+    C7_EEG = layers.Conv2D(int(n_filters * len(scales_reports) / 2),
+                       kernel_size=(8, 1),
+                       kernel_initializer='he_normal',
+                       use_bias=False,
+                       padding='same')(A2_EEG)
+    C7_1_EEG = layers.BatchNormalization()(C7_EEG)
+    C7_2_EEG = layers.Activation(activation)(C7_1_EEG)
+    C7_3_EEG = layers.AveragePooling2D(pool_size=(2, 1))(C7_2_EEG)
+    C7_4_EEG = layers.Dropout(dropout_rate)(C7_3_EEG)
+
+    C8_EEG = layers.Conv2D(int(n_filters * len(scales_reports) / 2),
+                       kernel_size=(4, 1),
+                       kernel_initializer='he_normal',
+                       use_bias=False,
+                       padding='same')(C7_4_EEG)
+    C8_1_EEG = layers.BatchNormalization()(C8_EEG)
+    C8_2_EEG = layers.Activation(activation)(C8_1_EEG)
+    C8_3_EEG = layers.AveragePooling2D((2, 1))(C8_2_EEG)
+    C8_4_EEG = layers.Dropout(dropout_rate)(C8_3_EEG)
+
+    F_EEG = layers.Flatten()(C8_4_EEG)
+
+
+    # Архитектура СНС
+    b1_units = list()
+
+    # Первый блок_____________________________________________
+    input = tf.keras.Input(shape=(input_reports, n_channels, 1))
+    for i in range(len(scales_reports)):
+        unit = layers.Conv2D(n_filters,
+                             kernel_size=(scales_reports[i], 1),
+                             kernel_initializer='he_normal',
+                             padding='same')(input)
+        unit = layers.BatchNormalization()(unit)
+        unit = layers.Activation(activation)(unit)
+        unit = layers.Dropout(dropout_rate)(unit)
+        unit = layers.DepthwiseConv2D((1, n_channels),
+                                      use_bias=False,
+                                      depth_multiplier=2,
+                                      depthwise_constraint=max_norm(1.))(unit)
+        unit = layers.BatchNormalization()(unit)
+        unit = layers.Activation(activation)(unit)
+        unit = layers.Dropout(dropout_rate)(unit)
+        b1_units.append(unit)
+    N1 = layers.Concatenate(axis=3)(b1_units)
+    A1 = layers.AveragePooling2D(pool_size=(4, 1))(N1)
+
+    # Второй блок_____________________________________________
+    b2_units = list()
+    for i in range(len(scales_reports)):
+        unit = layers.Conv2D(n_filters,
+                             kernel_size=(int(scales_reports[i] / 4), 1),
+                             kernel_initializer='he_normal',
+                             use_bias=False,
+                             padding='same')(A1)
+        unit = layers.BatchNormalization()(unit)
+        unit = layers.Activation(activation)(unit)
+        unit = layers.Dropout(dropout_rate)(unit)
+        b2_units.append(unit)
+    N2 = layers.Concatenate(axis=3)(b2_units)
+    A2 = layers.AveragePooling2D(pool_size=(2, 1))(N2)
+
+    # Третий блок_____________________________________________
+    C7 = layers.Conv2D(int(n_filters * len(scales_reports) / 2),
+                       kernel_size=(8, 1),
+                       kernel_initializer='he_normal',
+                       use_bias=False,
+                       padding='same')(A2)
+    C7_1 = layers.BatchNormalization()(C7)
+    C7_2 = layers.Activation(activation)(C7_1)
+    C7_3 = layers.AveragePooling2D(pool_size=(2, 1))(C7_2)
+    C7_4 = layers.Dropout(dropout_rate)(C7_3)
+
+    C8 = layers.Conv2D(int(n_filters * len(scales_reports) / 2),
+                       kernel_size=(4, 1),
+                       kernel_initializer='he_normal',
+                       use_bias=False,
+                       padding='same')(C7_4)
+    C8_1 = layers.BatchNormalization()(C8)
+    C8_2 = layers.Activation(activation)(C8_1)
+    C8_3 = layers.AveragePooling2D((2, 1))(C8_2)
+    C8_4 = layers.Dropout(dropout_rate)(C8_3)
+
+    F = layers.Flatten()(C8_4)
+
+    #______________________________________________
+    # Объединение выходов слоев в один вектор
+    merged = layers.concatenate([F_EEG, F])
+    output = layers.Dense(2, activation='softmax')(merged)
+    model = tf.keras.Model(inputs=[EEG_input, input], outputs=output)
+
     return model
